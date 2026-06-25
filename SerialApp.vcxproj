@@ -118,6 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,6 +129,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="user\DataCheck.c" />
+    <ClCompile Include="user\fsm.c" />
+    <ClCompile Include="user\HexProtocol.c" />
+    <ClCompile Include="user\OTA_Send.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="user\DataCheck.h" />
+    <ClInclude Include="user\fsm.h" />
+    <ClInclude Include="user\HexProtocol.h" />
+    <ClInclude Include="user\OTA_Send.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

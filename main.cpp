@@ -1,7 +1,12 @@
 #include <windows.h>
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include <string>
+#include <cstring>
 #include <chrono>
+#include "user/OTA_Send.h"
+#include "user/HexProtocol.h"
 
 // 获取当前时间戳（毫秒）
 uint32_t getCurrentMillis() {
@@ -73,9 +78,9 @@ HANDLE OpenSerialPort(const std::string& portName)
 
     // 设置超时（避免ReadFile无限阻塞）
     COMMTIMEOUTS timeouts = { 0 };
-    timeouts.ReadIntervalTimeout = 10;          // 字符间超时(ms)
+    timeouts.ReadIntervalTimeout = 0;          // 字符间超时(ms)
     timeouts.ReadTotalTimeoutMultiplier = 0;   // 每字节额外乘数
-    timeouts.ReadTotalTimeoutConstant = 0;   // 总超时常数(ms)
+    timeouts.ReadTotalTimeoutConstant = 15;   // 总超时常数(ms)
     // 写超时可选
     timeouts.WriteTotalTimeoutMultiplier = 0;
     timeouts.WriteTotalTimeoutConstant = 100;
@@ -87,7 +92,7 @@ HANDLE OpenSerialPort(const std::string& portName)
         return INVALID_HANDLE_VALUE;
     }
 
-    std::cout << "串口 " << portName << " 已打开，开始回传数据... (按 Ctrl+C 退出)" << std::endl;
+    std::cout << "串口 " << portName << " 已打开... (按 Ctrl+C 退出)" << std::endl;
     return hCom;
 }
 
@@ -118,7 +123,7 @@ static bool SerialReadData(uint8_t *recv, uint16_t *readlen)
     }
 }
 
-static void SerialSendData(uint8_t* send, uint16_t len)
+static void SerialSendData(const uint8_t* send, uint16_t len)
 {
     unsigned char buffer[READ_BUFFER_SIZE];
     DWORD bytesWrite = 0;
@@ -129,7 +134,7 @@ static void SerialSendData(uint8_t* send, uint16_t len)
     bytesWritten = len;
 
     WriteFile(hCom, buffer, bytesWrite, &bytesWritten, NULL);
-    std::cout << "发送了 " << bytesWrite << " 字节" << std::endl;
+    //std::cout << "发送了 " << bytesWrite << " 字节" << std::endl;
     //if (bytesWritten != bytesWrite)
     //{
     //    std::cerr << "写入不完整" << std::endl;
@@ -140,25 +145,96 @@ static void SerialSendData(uint8_t* send, uint16_t len)
     //}
 }
 
+std::ifstream file;
+
+bool get_bin_data(uint32_t index, uint8_t* data, uint8_t len)
+{
+    char buf[READ_BUFFER_SIZE] = { 0 };
+    file.read(buf, len);
+    memcpy(data, buf, len);
+
+    std::streamsize bytesRead = file.gcount();
+    if (bytesRead == 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 int main(int argc, char* argv[])
 {
-    std::string portName = "COM2";
+    // 1. 打开串口
+    std::string portName = "COM";
+    std::cout << "请输入需要打开的串口号（COMX）: ";
+    std::cin >> portName;
     hCom = OpenSerialPort(portName);
     if (hCom == INVALID_HANDLE_VALUE)
+    {
+        system("pause");
         return 1;
+    }
+
+    // 2. 打开文件
+    std::string fileName = "data.bin"; // 默认文件名
+    std::cout << "请输入需要发送的完整文件名（xxx.bin）: ";
+    std::cin >> fileName;
+    file.open(fileName, std::ios::binary | std::ios::ate);
+    if (!file.is_open())
+    {
+        std::cerr << "无法打开文件 " << fileName << "，请确保文件存在。" << std::endl;
+        CloseHandle(hCom);
+
+        system("pause");
+        return 1;
+    }
+
+    // 3. 获取文件大小
+    std::streamsize fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+    uint32_t file_size = (uint32_t)fileSize;
+    std::cout << "文件大小: " << fileSize << " 字节" << std::endl;
+
+    // 4. 初始化ota发送
+    HexProtocol_Init(1, 1);
+    std::cout << "hex地址为1 " << std::endl;
+    OTA_Send_RegisterFunctions(getCurrentMillis, get_bin_data, SerialSendData);
+    OTA_Send_Init();
+
+    // 5. 开始任务
+    if (!OTA_Send_Start(file_size))
+    {
+        std::cout << "ota 发送开始失败" << std::endl;
+    }
+    else
+    {
+        std::cout << "ota 发送开始！！！" << std::endl;
+    }
 
     uint8_t recv[READ_BUFFER_SIZE] = { 0 };
     uint16_t readlen = 0;
 
-    while (true)
+    while (OTA_Send_IsRunning())
     {
+        OTA_Send_Update();
         if (SerialReadData(recv, &readlen))
         {
-            SerialSendData(recv, readlen);
-            std::cerr << "time=" << getCurrentMillis() << std::endl;
+            printf("当前进度 %d%%\r\n", OTA_Send_GetProgress());
+            HexProtocol_setBuffer(recv, readlen);
+            if (HexProtocol_checkBuffer())
+            {
+                uint8_t cmd = HexProtocol_getCommand();
+                if (cmd == REQ_PACK)
+                {
+                    OTA_Send_HandleReply();
+                }
+            }
         }
     }
+    printf("当前进度 %d%%\r\n", OTA_Send_GetProgress());
+    std::cout << "ota 发送完成！！！" << std::endl;
 
     CloseHandle(hCom);
+    system("pause");
     return 0;
 }

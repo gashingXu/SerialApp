@@ -1,0 +1,5 @@
+E:\code\AAA-vstest\SerialApp\main.cpp;E:\code\AAA-vstest\SerialApp\SerialApp\x64\Release\main.obj
+E:\code\AAA-vstest\SerialApp\user\DataCheck.c;E:\code\AAA-vstest\SerialApp\SerialApp\x64\Release\DataCheck.obj
+E:\code\AAA-vstest\SerialApp\user\fsm.c;E:\code\AAA-vstest\SerialApp\SerialApp\x64\Release\fsm.obj
+E:\code\AAA-vstest\SerialApp\user\HexProtocol.c;E:\code\AAA-vstest\SerialApp\SerialApp\x64\Release\HexProtocol.obj
+E:\code\AAA-vstest\SerialApp\user\OTA_Send.c;E:\code\AAA-vstest\SerialApp\SerialApp\x64\Release\OTA_Send.obj

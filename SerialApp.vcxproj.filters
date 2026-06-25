@@ -18,5 +18,31 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="user\DataCheck.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="user\fsm.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="user\HexProtocol.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="user\OTA_Send.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="user\DataCheck.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="user\fsm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="user\HexProtocol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="user\OTA_Send.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

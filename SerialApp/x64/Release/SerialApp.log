@@ -1,0 +1,42 @@
+﻿  main.cpp
+E:\code\AAA-vstest\SerialApp\user\OTA_Send.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“main.cpp”)
+  
+E:\code\AAA-vstest\SerialApp\user\fsm.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“main.cpp”)
+  
+E:\code\AAA-vstest\SerialApp\user\HexProtocol.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“main.cpp”)
+  
+E:\code\AAA-vstest\SerialApp\main.cpp(117,20): warning C4244: “=”: 从“DWORD”转换到“uint16_t”，可能丢失数据
+  DataCheck.c
+E:\code\AAA-vstest\SerialApp\user\DataCheck.c(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  fsm.c
+E:\code\AAA-vstest\SerialApp\user\fsm.c(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\code\AAA-vstest\SerialApp\user\fsm.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“user/fsm.c”)
+  
+  HexProtocol.c
+E:\code\AAA-vstest\SerialApp\user\HexProtocol.c(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\code\AAA-vstest\SerialApp\user\HexProtocol.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“user/HexProtocol.c”)
+  
+E:\code\AAA-vstest\SerialApp\user\HexProtocol.c(106,37): warning C4244: “=”: 从“uint16_t”转换到“uint8_t”，可能丢失数据
+  OTA_Send.c
+E:\code\AAA-vstest\SerialApp\user\OTA_Send.c(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\code\AAA-vstest\SerialApp\user\OTA_Send.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“user/OTA_Send.c”)
+  
+E:\code\AAA-vstest\SerialApp\user\fsm.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“user/OTA_Send.c”)
+  
+E:\code\AAA-vstest\SerialApp\user\HexProtocol.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“user/OTA_Send.c”)
+  
+E:\code\AAA-vstest\SerialApp\user\OTA_Send.c(122,20): warning C4244: “return”: 从“float”转换到“uint8_t”，可能丢失数据
+  正在生成代码
+  504 of 514 functions (98.1%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  SerialApp.vcxproj -> E:\code\AAA-vstest\SerialApp\x64\Release\SerialApp.exe
