@@ -9,7 +9,7 @@
  * 使用方式：
  *
  * 1. 传入接口函数
- * OTA_Send_RegisterFunctions(get_time_ms_func, get_bin_total_func, get_bin_data_func, send_data_func);
+ * OTA_Send_RegisterFunctions(get_time_ms_func, get_bin_data_func, send_data_func, log_print_func);
  *
  * 2. 初始化发送模块
  * OTA_Send_Init();
@@ -37,11 +37,13 @@ extern "C"
     typedef uint32_t (*ota_get_time_ms_t)(void);
     typedef bool (*ota_get_bin_data_t)(uint32_t index, uint8_t *data, uint8_t len);
     typedef void (*ota_send_data_t)(const uint8_t *msg, uint16_t len);
+    typedef void (*ota_log_print)(const char *format, ...);
 
     // 初始化接口函数
     void OTA_Send_RegisterFunctions(ota_get_time_ms_t get_time_ms_func,
                                     ota_get_bin_data_t get_bin_data_func,
-                                    ota_send_data_t send_data_func);
+                                    ota_send_data_t send_data_func,
+                                    ota_log_print log_print_func);
 
     // 初始化 OTA 发送模块，返回 true 表示成功
     bool OTA_Send_Init();

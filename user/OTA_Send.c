@@ -29,24 +29,22 @@ typedef struct
     size_t table_size;
 
     bool running;
-    uint16_t total_packets;
-    uint16_t current_packet;
-    uint16_t reply_packet;
+    uint16_t total_packets;  // 总包数
+    uint16_t current_packet; // 当前发送包数
+    uint16_t reply_packet;   // 当前回复包数
 
     uint8_t reply_buf[BUF_SIZE];
-    uint8_t reply_len;
     bool reply_flag;
 
     uint8_t retry_count;
-
-    bool need_data;
 } ota_send_t;
 
 typedef struct
 {
-    ota_get_time_ms_t get_time_ms_func;
-    ota_get_bin_data_t get_bin_data_func;
-    ota_send_data_t send_data_func;
+    ota_get_time_ms_t get_time_ms_func;   // 获取ms时间
+    ota_get_bin_data_t get_bin_data_func; // 获取bin文件数据
+    ota_send_data_t send_data_func;       // 发送数据
+    ota_log_print log_print_func;         // 日志打印
 } ota_func_t;
 
 static ota_send_t ota_send_state;
@@ -79,11 +77,13 @@ static void ota_build_state_table(ota_send_t *ota)
 // 初始化接口函数
 void OTA_Send_RegisterFunctions(ota_get_time_ms_t get_time_ms_func,
                                 ota_get_bin_data_t get_bin_data_func,
-                                ota_send_data_t send_data_func)
+                                ota_send_data_t send_data_func,
+                                ota_log_print log_print_func)
 {
     ota_func.get_time_ms_func = get_time_ms_func;
     ota_func.get_bin_data_func = get_bin_data_func;
     ota_func.send_data_func = send_data_func;
+    ota_func.log_print_func = log_print_func;
 }
 
 // 状态机表初始化
@@ -155,9 +155,10 @@ bool OTA_Send_Start(uint32_t bin_size)
     ota->reply_packet = 0;
 
     memset(ota->reply_buf, 0, sizeof(ota->reply_buf));
-    ota->reply_len = 0;
     ota->reply_flag = false;
     ota->retry_count = 0;
+
+    ota_func.log_print_func("OTA trans start!!!\r\n");
 
     return true;
 }
@@ -182,6 +183,7 @@ static void ota_idle_handler(void *ctx)
     // 有任务则开始
     if (ota->running)
     {
+        ota_func.log_print_func("connecting...\r\n");
         fsm_goto_state(&ota->fsm, OTA_STATE_START);
     }
 }
@@ -215,6 +217,7 @@ static void ota_wait_start_ack_handler(void *ctx)
         HexProtocol_getPackData(&ota->reply_packet, ota->reply_buf);
         if (cmd == REQ_PACK && ota->reply_packet == ota->current_packet)
         {
+            ota_func.log_print_func("sending data...\r\n");
             fsm_goto_state(&ota->fsm, OTA_STATE_SEND_DATA);
             ota->retry_count = 0;
             return;
@@ -224,13 +227,17 @@ static void ota_wait_start_ack_handler(void *ctx)
     // 超时判断(不能与上面的if相对，上面有可能校验失败)
     if (ota_func.get_time_ms_func() - ota->fsm.last_update_time_ms > TIMEOUT_MS)
     {
-        if (++ota->retry_count > MAX_RETRY)
+        if (++ota->retry_count >= MAX_RETRY)
         {
+            // 超时次数过多，进入错误状态
+            ota_func.log_print_func("%dms no reply, quit\r\n", TIMEOUT_MS);
             fsm_goto_state(&ota->fsm, OTA_STATE_ERROR);
         }
         else
         {
-            fsm_goto_state(&ota->fsm, OTA_STATE_START);
+            // 超时重发
+            ota_func.log_print_func("%dms no reply, retrying\r\n", TIMEOUT_MS);
+            fsm_goto_state(&ota->fsm, OTA_STATE_SEND_DATA);
         }
     }
 }
@@ -258,6 +265,7 @@ static void ota_send_data_handler(void *ctx)
         {
             // 获取数据失败
             fsm_goto_state(&ota->fsm, OTA_STATE_ERROR);
+            ota_func.log_print_func("get_bin_data_func fail\r\n");
             return;
         }
         else
@@ -307,6 +315,8 @@ static void ota_wait_response_handler(void *ctx)
                     fsm_goto_state(&ota->fsm, OTA_STATE_SEND_DATA);
                 }
                 ota->retry_count = 0;
+
+                ota_func.log_print_func("progress: %d%%\r\n", OTA_Send_GetProgress());
                 return;
             }
             else if (ota->reply_packet == ota->current_packet)
@@ -321,14 +331,16 @@ static void ota_wait_response_handler(void *ctx)
     // 超时判断(不能与上面的if相对，上面有可能校验失败)
     if (ota_func.get_time_ms_func() - ota->fsm.last_update_time_ms > TIMEOUT_MS)
     {
-        if (++ota->retry_count > MAX_RETRY)
+        if (++ota->retry_count >= MAX_RETRY)
         {
             // 超时次数过多，进入错误状态
+            ota_func.log_print_func("%dms no reply, quit\r\n", TIMEOUT_MS);
             fsm_goto_state(&ota->fsm, OTA_STATE_ERROR);
         }
         else
         {
             // 超时重发
+            ota_func.log_print_func("%dms no reply, retrying\r\n", TIMEOUT_MS);
             fsm_goto_state(&ota->fsm, OTA_STATE_SEND_DATA);
         }
     }
@@ -346,6 +358,8 @@ static void ota_end_handler(void *ctx)
 
     ota->running = false;
 
+    ota_func.log_print_func("ota success!!!\r\n");
+
     // back to idle
     fsm_goto_state(&ota->fsm, OTA_STATE_IDLE);
 }
@@ -361,6 +375,8 @@ static void ota_error_handler(void *ctx)
     ota_func.send_data_func(pack, len);
 
     ota->running = false;
+
+    ota_func.log_print_func("ota fail!!!\r\n");
 
     // back to idle
     fsm_goto_state(&ota->fsm, OTA_STATE_IDLE);
